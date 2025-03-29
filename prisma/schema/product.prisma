@@ -1,22 +1,20 @@
 model product {
-    id                  Int      @id @default(autoincrement())
-    product_category_id Int
-    name                String   @db.VarChar(80)
-    imageurl            String
-    description         String   @db.VarChar(255)
-    price               Float
-    stock               Int
-	status				status	 @default(AVAILABLE)
-    createdAt           DateTime @default(now())
-    updatedAt           DateTime @updatedAt
-
-	product_category product_category? @relation(fields: [product_category_id], references: [id])
-
-    order order[]
-    cart cart[]
+  id                  Int              @id @default(autoincrement())
+  product_category_id Int
+  name                String           @db.VarChar(80)
+  imageurl            String
+  description         String           @db.VarChar(255)
+  price               Float
+  stock               Int
+  status              status           @default(AVAILABLE)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  cart                cart[]
+  order               order[]
+  product_category    product_category @relation(fields: [product_category_id], references: [id])
 }
 
 enum status {
-	AVAILABLE
-	OUT_OF_STOCK
+  AVAILABLE
+  OUT_OF_STOCK
 }

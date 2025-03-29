@@ -12,10 +12,9 @@ model user {
   createdAt                          DateTime   @default(now())
   updatedAt                          DateTime   @updatedAt
   priority                           Priority   @default(USER)
-  adoption_adoption_added_userTouser adoption[] @relation()
+  adoption_adoption_added_userTouser adoption[]
   cart                               cart[]
-
-  order order[]
+  order                              order[]
 }
 
 enum Priority {
