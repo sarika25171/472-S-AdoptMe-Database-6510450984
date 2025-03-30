@@ -40,15 +40,35 @@ OrderController.get(
 	}
 )
 
+OrderController.get(
+	"/getByUserId/:user_id", 
+	async ({ params: { user_id } }) => {
+		const orderRepository = new OrderRepository();
+		const orders = await orderRepository.getByUserId(user_id);
+		return orders.length > 0 ? orders : { error: "No orders found for this user" };
+	},
+	{
+		params: t.Object({
+			user_id: t.String(),
+		}),
+		detail: {
+			summary: "Get orders by user ID",
+			description: "Retrieve all orders associated with a specific user ID",
+		}
+	}
+)
+
+
 OrderController.post(
 	"/createOrder",
-	async ({ body : { user_id, product_id, quantity, total_price } }) => {
+	async ({ body : { user_id, product_id, quantity, total_price, session_id } }) => {
 		const orderRepository = new OrderRepository();
 		const order = await orderRepository.createOrder({
             user_id,
             product_id,
             quantity,
-            total_price  
+            total_price,
+			session_id
         });
 		return order;
 	},
@@ -58,6 +78,7 @@ OrderController.post(
 			product_id: t.Number(),
 			quantity: t.Number(),
 			total_price: t.Number(),
+			session_id: t.String()
 		}),
 		detail: {
 			summary: "Create order",
@@ -114,5 +135,49 @@ OrderController.get(
 		}
 	}
 )
+OrderController.patch(
+	"/addComment",
+	async ({ body: { id, rating, comment } }) => {
+		const orderRepository = new OrderRepository();
+		const updatedOrder = await orderRepository.addComment({
+            id,
+            rating,
+			comment
+		});
+		return updatedOrder;
+	},
+	{
+		body: t.Object({
+			id: t.Number(),
+			rating: t.String(),
+			comment: t.String()
+		}),
+		detail: {
+			summary: "Add comment",
+			description: "Add comment",
+		}
+	}
+);
+OrderController.patch(
+	"/addReplyAdmin",
+	async ({ body: { id, reply_admin } }) => {
+		const orderRepository = new OrderRepository();
+		const updatedOrder = await orderRepository.addReplyAdmin({
+            id,
+			reply_admin
+		});
+		return updatedOrder;
+	},
+	{
+		body: t.Object({
+			id: t.Number(),
+			reply_admin: t.String()
+		}),
+		detail: {
+			summary: "Add reply",
+			description: "Add reply",
+		}
+	}
+);
 export default OrderController;
 

@@ -22,6 +22,8 @@ app.use(
         { name: "Adoption", description: "Adoption endpoint" },
         { name: "Product", description: "Product endpoint" },
         { name: "Product Category", description: "Product Category endpoint" },
+        { name: "Order", description: "Order endpoint" },
+        { name: "Cart", description: "Cart endpoint" },
       ],
     },
   })
@@ -37,7 +39,6 @@ app.use(ProductCategoryController);
 app.use(CartController);
 app.use(OrderController);
 app.use(EmergencyController);
-
 
 app.get(
   "/",

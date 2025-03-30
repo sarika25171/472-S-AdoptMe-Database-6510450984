@@ -34,21 +34,25 @@ class OrderRepository {
 		user_id,
 		product_id,
 		quantity,
-		total_price
+		total_price,
+		session_id
 	}: {
 		user_id: string;
 		product_id: number;
 		quantity: number;
 		total_price: number;
+		session_id: string;
 	}): Promise<order> {
 		try {
 			const response = await db.order.create({
 				data: {
 					user_id: user_id,
 					product_id: product_id,
+					session_id: session_id,
 					quantity: quantity,
 					total_price: total_price,
-					order_date: new Date()
+					order_date: new Date(),
+					order_status: order_status.SUCCESSFUL
 				}
 			});
 			return response;
@@ -72,6 +76,53 @@ class OrderRepository {
                 where: { id: id },
                 data: { 
                     ...order
+                }
+            });
+            return response;
+        } catch (error) {
+            if (error instanceof PrismaClientKnownRequestError) {
+                throw JSON.stringify({error: error.message});
+            }
+            throw JSON.stringify({error: "Internal Server Error"});
+        }
+    }
+	public async addComment({
+        id,
+        rating,
+		comment
+    }: {
+        id: number;
+        rating : string;
+		comment: string;
+    }): Promise<order | null> {
+        try {
+            const response = await db.order.update({
+                where: { id: id },
+                data: { 
+                    rating: rating,
+					comment: comment
+                }
+            });
+            return response;
+        } catch (error) {
+            if (error instanceof PrismaClientKnownRequestError) {
+                throw JSON.stringify({error: error.message});
+            }
+            throw JSON.stringify({error: "Internal Server Error"});
+        }
+    }
+	public async addReplyAdmin({
+        id,
+		reply_admin
+    }: {
+        id: number;
+		reply_admin: string;
+    }): Promise<order | null> {
+        try {
+            const response = await db.order.update({
+                where: { id: id },
+                data: { 
+                    reply_admin: reply_admin
                 }
             });
             return response;
