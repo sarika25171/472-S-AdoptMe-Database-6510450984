@@ -1,8 +1,8 @@
-import { emergency } from "@prisma/client";
+import { emergency } from ".prisma/client";
 import db from "./Database";
 
 class EmergencyRepository {
-  public async getAll(): Promise<Partial<emergency>[]> {
+  public async getAllEmergencies(): Promise<Partial<emergency>[]> {
     return await db.emergency.findMany({
       select: { emergency_id: true, name: true, address: true, phone_number: true, latitude: true, longitude: true }
     });
