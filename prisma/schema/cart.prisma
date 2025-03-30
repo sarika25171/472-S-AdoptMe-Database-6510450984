@@ -1,13 +1,12 @@
 model cart {
-    id         Int      @id @default(autoincrement())
-    user_id    String
-    product_id Int
-    quantity   Int
-    created_at DateTime @default(now())
-    updated_at DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  user_id    String
+  product_id Int
+  quantity   Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  product    product  @relation(fields: [product_id], references: [id])
+  user       user     @relation(fields: [user_id], references: [user_id])
 
-    user    user    @relation(fields: [user_id], references: [user_id])
-    product product @relation(fields: [product_id], references: [id])
-
-    @@unique([user_id, product_id])
-} 
+  @@unique([user_id, product_id])
+}
