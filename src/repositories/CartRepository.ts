@@ -62,6 +62,12 @@ class CartRepository {
             throw JSON.stringify({error: "Internal Server Error"});
         }
     }
+    
+    public async getByUserIdAndProductId(user_id: string, product_id: number): Promise<cart | null> {
+        return await db.cart.findFirst({
+            where: { user_id: user_id, product_id: product_id },
+        });
+    }
 
     public async updateCartItem({
         user_id,
@@ -93,19 +99,14 @@ class CartRepository {
     }
 
     public async removeFromCart({
-        user_id,
-        product_id
+        cart_id
     }: {
-        user_id: string;
-        product_id: number;
+        cart_id: number;
     }): Promise<cart> {
         try {
             return await db.cart.delete({
                 where: {
-                    user_id_product_id: {
-                        user_id: user_id,
-                        product_id: product_id
-                    }
+                    id: cart_id
                 }
             });
         } catch (error) {

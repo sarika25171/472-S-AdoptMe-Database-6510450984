@@ -1,4 +1,4 @@
-import { order, order_status, pet } from "@prisma/client";
+import { order, order_status } from "@prisma/client";
 import db from "./Database";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
@@ -86,6 +86,13 @@ class OrderRepository {
             throw JSON.stringify({error: "Internal Server Error"});
         }
     }
+
+	public async deleteOrder(id: number): Promise<order | null> {
+		return await db.order.delete({
+			where: { id: id }
+		});
+	}
+
 	public async addComment({
         id,
         rating,
