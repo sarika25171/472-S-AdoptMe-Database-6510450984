@@ -80,7 +80,6 @@ describe("Product API", () => {
 		});
 
 		const data = await response.json();
-		console.log(data);
 		expect(response.status).toBe(422);
 		expect(data.summary).toBe("Property 'stock' is missing");
 	});

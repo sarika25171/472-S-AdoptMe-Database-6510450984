@@ -1,4 +1,4 @@
-import Elysia, { t } from "elysia";
+import Elysia, { error, t } from "elysia";
 import CartRepository from "../repositories/CartRepository";
 
 const CartController = new Elysia({
@@ -11,7 +11,7 @@ CartController.get(
     async ({ params: { user_id } }) => {
         const cartRepository = new CartRepository();
         const cart = await cartRepository.getCartByUserId(user_id);
-        return cart ?? { error: "Cart not found" };
+        return cart ?? error(404, { error: "Cart not found" });
     },
     {
         params: t.Object({
@@ -28,12 +28,18 @@ CartController.post(
     "/addToCart",
     async ({ body: { user_id, product_id, quantity } }) => {
         const cartRepository = new CartRepository();
+        if(product_id <= 0) {
+            return error(400, { error: "Invalid product ID" });
+        }
+        if(user_id === "") {
+            return error(400, { error: "Invalid user ID" });
+        }
         const cartItem = await cartRepository.addToCart({
             user_id,
             product_id,
             quantity
         });
-        return cartItem;
+        return cartItem ?? error(404, { error: "Cart not found" });
     },
     {
         body: t.Object({
@@ -51,13 +57,19 @@ CartController.post(
 CartController.patch(
     "/updateCartItem",
     async ({ body: { user_id, product_id, quantity } }) => {
+        if(product_id <= 0) {
+            return error(400, { error: "Invalid product ID" });
+        }
+        if(user_id === "") {
+            return error(400, { error: "Invalid user ID" });
+        }
         const cartRepository = new CartRepository();
         const cartItem = await cartRepository.updateCartItem({
             user_id,
             product_id,
             quantity
         });
-        return cartItem;
+        return cartItem ?? error(404, { error: "Cart not found" });
     },
     {
         body: t.Object({
@@ -76,11 +88,17 @@ CartController.delete(
     "/removeFromCart",
     async ({ body: { user_id, product_id } }) => {
         const cartRepository = new CartRepository();
-        const cartItem = await cartRepository.removeFromCart({
+        if(user_id === "") {
+            return error(404, { error: "Invalid user ID" });
+        }
+        const cartItem = await cartRepository.getByUserIdAndProductId(
             user_id,
             product_id
-        });
-        return cartItem;
+        );
+         if(!cartItem)
+            return error(404, { error: "Cart not found" });
+        const removed = await cartRepository.removeFromCart({cart_id : cartItem.id});
+        return removed;
     },
     {
         body: t.Object({
@@ -97,9 +115,12 @@ CartController.delete(
 CartController.delete(
     "/clearCart/:user_id",
     async ({ params: { user_id } }) => {
+        if(user_id === "") {
+            return error(400, { error: "Invalid user ID" });
+        }
         const cartRepository = new CartRepository();
         const result = await cartRepository.clearCart(user_id);
-        return result;
+        return result ?? error(404, { error: "Cart not found" });
     },
     {
         params: t.Object({

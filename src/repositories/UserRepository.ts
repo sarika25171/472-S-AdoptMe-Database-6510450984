@@ -39,6 +39,12 @@ class UserRepository {
 		});
 	}
 
+	public async getUserByUsernameForTest(username: string): Promise<user | null> {
+		return await db.user.findUnique({
+			where: { username},
+		});
+	}
+
 	public async getById(user_id: string): Promise<Partial<user | null>> {
 		return await db.user.findUnique({
 			where: { user_id: user_id },

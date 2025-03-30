@@ -1,6 +1,5 @@
 import { adoption } from "@prisma/client";
 import db from "./Database";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 
 class AdoptionRepository{

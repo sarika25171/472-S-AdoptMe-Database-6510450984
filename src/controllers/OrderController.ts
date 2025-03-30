@@ -12,7 +12,7 @@ OrderController.get(
 	async () => {
 		const orderRepository = new OrderRepository();
 		const orders = await orderRepository.getAll();
-		return orders ?? { error: "Orders not found" };
+		return orders ?? error(404, { error: "Orders not found" });
 	},
 	{
 		detail: {
@@ -25,9 +25,12 @@ OrderController.get(
 OrderController.get(
 	"/getById/:id", 
 	async ({ params: { id } }) => {
+		if(id <= 0) {
+			return error(400, { error: "Invalid order ID" });
+		}
 		const orderRepository = new OrderRepository();
 		const order = await orderRepository.getById(id);
-		return order ?? { error: "Order not found" };
+		return order ?? error(404, { error: "Order not found" });
 	},
 	{
 		params: t.Object({
@@ -43,9 +46,12 @@ OrderController.get(
 OrderController.get(
 	"/getByUserId/:user_id", 
 	async ({ params: { user_id } }) => {
+		if(user_id === "") {
+			return error(400, { error: "Invalid user ID" });
+		}
 		const orderRepository = new OrderRepository();
 		const orders = await orderRepository.getByUserId(user_id);
-		return orders.length > 0 ? orders : { error: "No orders found for this user" };
+		return orders.length > 0 ? orders : error(404, { error: "No orders found for this user" });
 	},
 	{
 		params: t.Object({
@@ -62,6 +68,15 @@ OrderController.get(
 OrderController.post(
 	"/createOrder",
 	async ({ body : { user_id, product_id, quantity, total_price, session_id } }) => {
+		if(product_id <= 0) {
+			return error(400, { error: "Invalid product ID" });
+		}
+		if(user_id === "") {
+			return error(400, { error: "Invalid user ID" });
+		}
+		if(!session_id) {
+			return error(400, { error: "Invalid session ID" });
+		}
 		const orderRepository = new OrderRepository();
 		const order = await orderRepository.createOrder({
             user_id,
@@ -70,7 +85,7 @@ OrderController.post(
             total_price,
 			session_id
         });
-		return order;
+		return order ?? error(500, { error: "Failed to create order" });
 	},
 	{
 		body: t.Object({
@@ -90,12 +105,15 @@ OrderController.post(
 OrderController.patch(
 	"/updateOrder",
 	async ({ body : { id, order } }) => {
+		if(id <= 0) {
+			return error(400, { error: "Invalid order ID" });
+		}
 		const orderRepository = new OrderRepository();
 		const updatedOrder = await orderRepository.updateOrder({
             id,
             order
 		});
-		return updatedOrder;
+		return updatedOrder ?? error(500, { error: "Failed to update order" });
 	},
 	{
 		body: t.Object({
@@ -118,6 +136,28 @@ OrderController.patch(
 		}
 	}
 )
+
+OrderController.delete(
+	"/deleteOrder",
+	async ({ body: { id } }) => {
+		if(id <= 0) {
+			return error(400, { error: "Invalid order ID" });
+		}
+		const orderRepository = new OrderRepository();
+		const order = await orderRepository.deleteOrder(id);
+		return order ?? error(404, { error: "Order not found" });
+	},
+	{
+		body: t.Object({
+			id: t.Number(),
+		}),
+		detail: {
+			summary: "Delete order",
+			description: "Delete order",
+		}
+	}
+)
+
 OrderController.get(
 	"/getByProductId/:id", 
 	async ({ params: { id } }) => {
