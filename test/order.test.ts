@@ -7,7 +7,7 @@ import ProductCategoryController from "../src/controllers/ProductCategoryControl
 import { order, product, product_category, user } from "@prisma/client";
 
 // Use a random port to avoid conflicts
-const PORT = 3000 + Math.floor(Math.random() * 1000);
+const PORT = 3002;
 const BASE_URL = `http://localhost:${PORT}/api`;
 
 // Helper function to generate random data

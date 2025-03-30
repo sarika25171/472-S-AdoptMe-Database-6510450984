@@ -4,14 +4,14 @@ import ProductController from "../src/controllers/ProductController";
 import ProductCategoryController from "../src/controllers/ProductCategoryController";
 
 const app = new Elysia().use(ProductController).use(ProductCategoryController);
-const server = app.listen(3000);
+const server = app.listen(3004);
 
 let categoryId: number;
 let name: string;
 
 describe("🛒 Product & Category API", () => {
 	it("create a new product category", async () => {
-		const response = await fetch("http://localhost:3000/api/product-category/createProductCategory", {
+		const response = await fetch("http://localhost:3004/api/product-category/createProductCategory", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
@@ -28,7 +28,7 @@ describe("🛒 Product & Category API", () => {
 	});
 
 	it("should return all product categories", async () => {
-		const response = await fetch("http://localhost:3000/api/product-category/getAll");
+		const response = await fetch("http://localhost:3004/api/product-category/getAll");
 		const data = await response.json();
 
 		expect(response.status).toBe(200);
@@ -37,7 +37,7 @@ describe("🛒 Product & Category API", () => {
 	});
 
 	it("should return a category by ID", async () => {
-		const response = await fetch(`http://localhost:3000/api/product-category/getById/${categoryId}`);
+		const response = await fetch(`http://localhost:3004/api/product-category/getById/${categoryId}`);
 		const data = await response.json();
 
 		expect(response.status).toBe(200);
@@ -45,7 +45,7 @@ describe("🛒 Product & Category API", () => {
 	});
 
 	it("should return 404 for get non-existent category", async () => {
-		const response = await fetch("http://localhost:3000/api/product-category/getById/0");
+		const response = await fetch("http://localhost:3004/api/product-category/getById/0");
 		const data = await response.json();
 
 		expect(response.status).toBe(404);
@@ -53,7 +53,7 @@ describe("🛒 Product & Category API", () => {
 	});
 
 	it("delete a category", async () => {
-		const response = await fetch(`http://localhost:3000/api/product-category/deleteProductCategory`, {
+		const response = await fetch(`http://localhost:3004/api/product-category/deleteProductCategory`, {
 			method: "DELETE",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
@@ -67,7 +67,7 @@ describe("🛒 Product & Category API", () => {
 	});
 
 	it("should return 404 for delete non-existent category", async () => {
-		const response = await fetch(`http://localhost:3000/api/product-category/deleteProductCategory`, {
+		const response = await fetch(`http://localhost:3004/api/product-category/deleteProductCategory`, {
 			method: "DELETE",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({

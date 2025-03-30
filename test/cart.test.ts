@@ -7,7 +7,7 @@ import UserController from "../src/controllers/UserController";
 import { product, product_category, user } from "@prisma/client";
 
 const app = new Elysia().use(CartController).use(UserController).use(ProductController).use(ProductCategoryController);
-const server = app.listen(3000);
+const server = app.listen(3001);
 let productCategoryTest: product_category = {
     id: 0,
     name: "Product Category 1",
@@ -24,7 +24,7 @@ describe("CartController API Tests", () => {
     it("create user", async () => {
         const username = Math.random().toString(36).substring(2, 15);
         const email = username + "@example.com";
-        const response = await fetch("http://localhost:3000/api/user/register", {
+        const response = await fetch("http://localhost:3001/api/user/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -43,7 +43,7 @@ describe("CartController API Tests", () => {
         expect(data).toBeDefined();
     
         const responseUser = await fetch(
-          "http://localhost:3000/api/user/getUserByUsernameForTest/",
+          "http://localhost:3001/api/user/getUserByUsernameForTest/",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -58,7 +58,7 @@ describe("CartController API Tests", () => {
     
       it("create product category", async () => {
         const response = await fetch(
-          "http://localhost:3000/api/product-category/createProductCategory",
+          "http://localhost:3001/api/product-category/createProductCategory",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -80,7 +80,7 @@ describe("CartController API Tests", () => {
       it("create product", async () => {
         const name = Math.random().toString(36).substring(2, 15);
         const response = await fetch(
-          "http://localhost:3000/api/product/createProduct",
+          "http://localhost:3001/api/product/createProduct",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -103,7 +103,7 @@ describe("CartController API Tests", () => {
       it("create product2", async () => {
         const name = Math.random().toString(36).substring(2, 15);
         const response = await fetch(
-          "http://localhost:3000/api/product/createProduct",
+          "http://localhost:3001/api/product/createProduct",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -124,14 +124,14 @@ describe("CartController API Tests", () => {
       });
   
     it("get all carts", async () => {
-        const response = await fetch(`http://localhost:3000/api/cart/getCart/${userTest?.user_id}`);
+        const response = await fetch(`http://localhost:3001/api/cart/getCart/${userTest?.user_id}`);
         const data = await response.json();
         expect(response.status).toBe(200);
         expect(Array.isArray(data)).toBe(true);
     })
 
     it("add to cart", async () => {
-        const response = await fetch("http://localhost:3000/api/cart/addToCart", {
+        const response = await fetch("http://localhost:3001/api/cart/addToCart", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ user_id: userTest?.user_id, product_id: productTest.id, quantity: 1 }),
@@ -144,7 +144,7 @@ describe("CartController API Tests", () => {
     })
 
     it("update cart item", async () => {
-        const response = await fetch("http://localhost:3000/api/cart/updateCartItem", {
+        const response = await fetch("http://localhost:3001/api/cart/updateCartItem", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ user_id: userTest?.user_id, product_id: productTest.id, quantity: 2 }),
@@ -159,7 +159,7 @@ describe("CartController API Tests", () => {
     })
 
     it("update non-existent product_id in cart item", async () => {
-        const response = await fetch("http://localhost:3000/api/cart/updateCartItem", {
+        const response = await fetch("http://localhost:3001/api/cart/updateCartItem", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ user_id: userTest?.user_id, product_id: 0, quantity: 2 }),
@@ -170,7 +170,7 @@ describe("CartController API Tests", () => {
     })
 
     it("remove from cart", async () => {
-        const response = await fetch("http://localhost:3000/api/cart/removeFromCart", {
+        const response = await fetch("http://localhost:3001/api/cart/removeFromCart", {
             headers: { "Content-Type": "application/json" },
             method: "DELETE",
             body: JSON.stringify({ user_id: userTest?.user_id, product_id: productTest.id }),
@@ -184,7 +184,7 @@ describe("CartController API Tests", () => {
     })
 
     it("remove non-existent product_id in cart item", async () => {
-        const response = await fetch("http://localhost:3000/api/cart/removeFromCart", {
+        const response = await fetch("http://localhost:3001/api/cart/removeFromCart", {
             headers: { "Content-Type": "application/json" },
             method: "DELETE",
             body: JSON.stringify({ user_id: userTest?.user_id, product_id: productTest2.id }),
@@ -196,7 +196,7 @@ describe("CartController API Tests", () => {
     
 
     it("clear cart", async () => {
-        const response = await fetch(`http://localhost:3000/api/cart/clearCart/${userTest?.user_id}`, {
+        const response = await fetch(`http://localhost:3001/api/cart/clearCart/${userTest?.user_id}`, {
             headers: { "Content-Type": "application/json" },
             method: "DELETE",
             body: JSON.stringify({ user_id: userTest?.user_id }),
@@ -207,20 +207,20 @@ describe("CartController API Tests", () => {
     })
 
   afterAll(async () => {
-      await fetch("http://localhost:3000/api/product/deleteProduct", {
+      await fetch("http://localhost:3001/api/product/deleteProduct", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: productTest.id }),
       });
       await fetch(
-        "http://localhost:3000/api/product-category/deleteProductCategory",
+        "http://localhost:3001/api/product-category/deleteProductCategory",
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: productCategoryTest.id }),
         }
       );
-      await fetch("http://localhost:3000/api/user/delete", {
+      await fetch("http://localhost:3001/api/user/delete", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: userTest?.user_id }),

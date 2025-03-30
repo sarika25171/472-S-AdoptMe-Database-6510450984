@@ -6,13 +6,13 @@ import ProductCategoryController from "../src/controllers/ProductCategoryControl
 
 
 const app = new Elysia().use(ProductController).use(ProductCategoryController);
-const server = app.listen(3000); // Use a test port if needed
+const server = app.listen(3003); // Use a test port if needed
 let id: number;
 let productCategoryId: number;
 
 describe("Product API", () => {
 	it("get all products", async () => {
-	  const response = await fetch("http://localhost:3000/api/product/getAll");
+	  const response = await fetch("http://localhost:3003/api/product/getAll");
 	  const data = await response.json();
 
 	  expect(response.status).toBe(200);
@@ -21,7 +21,7 @@ describe("Product API", () => {
 
 
 	it("return an error for get a non-existent product", async () => {
-	  const response = await fetch("http://localhost:3000/api/product/getById/0");
+	  const response = await fetch("http://localhost:3003/api/product/getById/0");
 
 	  const data = await response.json();
 	  expect(response.status).toBe(404);
@@ -29,7 +29,7 @@ describe("Product API", () => {
 	});
 
 	it("create a new product category", async () => {
-		const response = await fetch("http://localhost:3000/api/product-category/createProductCategory", {
+		const response = await fetch("http://localhost:3003/api/product-category/createProductCategory", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
@@ -47,7 +47,7 @@ describe("Product API", () => {
 	});
 
 	it("create a new product", async () => {
-		const response = await fetch("http://localhost:3000/api/product/createProduct", {
+		const response = await fetch("http://localhost:3003/api/product/createProduct", {
 		  method: "POST",
 		  headers: { "Content-Type": "application/json" },
 		  body: JSON.stringify({
@@ -67,7 +67,7 @@ describe("Product API", () => {
 	});
 
 	it("create a new product with out stcok", async () => {
-		const response = await fetch("http://localhost:3000/api/product/createProduct", {
+		const response = await fetch("http://localhost:3003/api/product/createProduct", {
 		  method: "POST",
 		  headers: { "Content-Type": "application/json" },
 		  body: JSON.stringify({
@@ -85,7 +85,7 @@ describe("Product API", () => {
 	});
 
 	it("get one product by id", async () => {
-		const response = await fetch(`http://localhost:3000/api/product/getById/${id}`);
+		const response = await fetch(`http://localhost:3003/api/product/getById/${id}`);
 		const data = await response.json();
 
 		expect(response.status).toBe(200);
@@ -93,7 +93,7 @@ describe("Product API", () => {
 	});
 
 	it("update a product", async () => {
-		const response = await fetch("http://localhost:3000/api/product/updateProduct", {
+		const response = await fetch("http://localhost:3003/api/product/updateProduct", {
 		  method: "PATCH",
 		  headers: { "Content-Type": "application/json" },
 		  body: JSON.stringify({
@@ -113,7 +113,7 @@ describe("Product API", () => {
 	});
 
 	it("return an error for update a non-existent product", async () => {
-		const response = await fetch("http://localhost:3000/api/product/updateProduct", {
+		const response = await fetch("http://localhost:3003/api/product/updateProduct", {
 		  method: "PATCH",
 		  headers: { "Content-Type": "application/json" },
 		  body: JSON.stringify({
@@ -133,7 +133,7 @@ describe("Product API", () => {
 	});
 
 	it("order a product", async () => {
-		const response = await fetch("http://localhost:3000/api/product/orderProduct", {
+		const response = await fetch("http://localhost:3003/api/product/orderProduct", {
 			method: "PATCH",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
@@ -147,7 +147,7 @@ describe("Product API", () => {
 	});
 
 	it("order a product until stock is zero", async () => {
-		const response = await fetch("http://localhost:3000/api/product/orderProduct", {
+		const response = await fetch("http://localhost:3003/api/product/orderProduct", {
 			method: "PATCH",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
@@ -162,7 +162,7 @@ describe("Product API", () => {
 	});
 
 	it("order a product stock less than zero", async () => {
-		const response = await fetch("http://localhost:3000/api/product/orderProduct", {
+		const response = await fetch("http://localhost:3003/api/product/orderProduct", {
 			method: "PATCH",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
@@ -177,7 +177,7 @@ describe("Product API", () => {
 
 
 	it("delete a product", async () => {
-		const response = await fetch("http://localhost:3000/api/product/deleteProduct", {
+		const response = await fetch("http://localhost:3003/api/product/deleteProduct", {
 			method: "DELETE",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
@@ -191,7 +191,7 @@ describe("Product API", () => {
 	});
 
 	it("delete product that dont have", async () => {
-		const response = await fetch("http://localhost:3000/api/product/deleteProduct", {
+		const response = await fetch("http://localhost:3003/api/product/deleteProduct", {
 			method: "DELETE",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
