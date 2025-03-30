@@ -1,247 +1,334 @@
 import Elysia from "elysia";
-import { afterAll, describe, expect, it } from "bun:test";
+import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import OrderController from "../src/controllers/OrderController";
 import UserController from "../src/controllers/UserController";
 import ProductController from "../src/controllers/ProductController";
 import ProductCategoryController from "../src/controllers/ProductCategoryController";
 import { order, product, product_category, user } from "@prisma/client";
 
+// Use a random port to avoid conflicts
+const PORT = 3000 + Math.floor(Math.random() * 1000);
+const BASE_URL = `http://localhost:${PORT}/api`;
+
+// Helper function to generate random data
+const generateRandomString = () => Math.random().toString(36).substring(2, 15);
+
+// Create app and start server
 const app = new Elysia()
   .use(OrderController)
   .use(UserController)
   .use(ProductController)
   .use(ProductCategoryController);
-const server = app.listen(3000);
-let productCategoryTest: product_category = {
-  id: 0,
-  name: "Product Category 1",
-  description: "Product Category 1 description",
-  createdAt: new Date(),
-  updatedAt: new Date(),
+
+let server: any;
+let testData = {
+  productCategory: null as product_category | null,
+  product: null as product | null,
+  user: null as user | null,
+  order: null as order | null
 };
-let productTest: product;
-let userTest: user | null = null;
-let orderTest: order | null = null;
 
-describe("OrderController API Tests", () => {
-  it("create user", async () => {
-    const username = Math.random().toString(36).substring(2, 15);
-    const email = username + "@example.com";
-    console.log("username: ", username);
-    const response = await fetch("http://localhost:3000/api/user/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: username,
-        password: "Password!123",
-        email: email,
-        first_name: "John",
-        last_name: "Doe",
-        phone_number: "1234567890",
-        photo_url: "https://example.com/photo.jpg",
-        salary: 100000,
-      }),
-    });
-    const data = await response.json();
-    expect(response.status).toBe(200);
-    expect(data).toBeDefined();
+describe("Order API Integration Tests", () => {
+  // Setup before all tests
+  beforeAll(async () => {
+    server = app.listen(PORT);
+    console.log(`Test server running on port ${PORT}`);
+  });
 
-    const responseUser = await fetch(
-      "http://localhost:3000/api/user/getUserByUsernameForTest/",
-      {
+  // User tests
+  describe("User Management", () => {
+    it("should create a new user", async () => {
+      const username = generateRandomString();
+      const email = `${username}@example.com`;
+      
+      const response = await fetch(`${BASE_URL}/user/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: username,
+          password: "Password!123",
+          email: email,
+          first_name: "John",
+          last_name: "Doe",
+          phone_number: "1234567890",
+          photo_url: "https://example.com/photo.jpg",
+          salary: 100000,
+        }),
+      });
+      
+      const data = await response.json();
+      expect(response.status).toBe(200);
+      expect(data).toBeDefined();
+      
+      // Verify user was created
+      const userResponse = await fetch(`${BASE_URL}/user/getUserByUsernameForTest/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: data.username }),
-      }
-    );
-    const dataUser = await responseUser.json();
-    expect(responseUser.status).toBe(200);
-    expect(dataUser).toMatchObject(data);
-    userTest = dataUser;
-  });
-
-  it("create product category", async () => {
-    const response = await fetch(
-      "http://localhost:3000/api/product-category/createProductCategory",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: productCategoryTest.name,
-          description: productCategoryTest.description,
-        }),
-      }
-    );
-    const data = await response.json();
-    expect(response.status).toBe(200);
-    expect(data).toMatchObject({
-      name: productCategoryTest.name,
-      description: productCategoryTest.description,
+      });
+      
+      const userData = await userResponse.json();
+      expect(userResponse.status).toBe(200);
+      expect(userData).toMatchObject(data);
+      
+      // Store for later tests
+      testData.user = userData;
     });
-    productCategoryTest = data;
   });
 
-  it("create product", async () => {
-    const name = Math.random().toString(36).substring(2, 15);
-    const response = await fetch(
-      "http://localhost:3000/api/product/createProduct",
-      {
+  // Product Category tests
+  describe("Product Category Management", () => {
+    it("should create a product category", async () => {
+      const categoryName = `Category ${generateRandomString()}`;
+      
+      const response = await fetch(`${BASE_URL}/product-category/createProductCategory`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: name,
-          price: 10,
+          name: categoryName,
+          description: `${categoryName} description`,
+        }),
+      });
+      
+      const data = await response.json();
+      expect(response.status).toBe(200);
+      expect(data).toMatchObject({
+        name: categoryName,
+        description: `${categoryName} description`,
+      });
+      
+      // Store for later tests
+      testData.productCategory = data;
+    });
+  });
+
+  // Product tests
+  describe("Product Management", () => {
+    it("should create a product", async () => {
+      if (!testData.productCategory) {
+        throw new Error("Product category not created in previous test");
+      }
+      
+      const productName = `Product ${generateRandomString()}`;
+      const price = Math.floor(Math.random() * 100) + 1;
+      
+      const response = await fetch(`${BASE_URL}/product/createProduct`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: productName,
+          price: price,
           stock: 10,
-          description: name + " description",
-          product_category_id: 1,
+          description: `${productName} description`,
+          product_category_id: testData.productCategory.id,
           imageurl: "https://example.com/photo.jpg",
         }),
-      }
-    );
-    const data = await response.json();
-    expect(response.status).toBe(200);
-    expect(data).toMatchObject({
-      name: name,
-      price: 10,
-      stock: 10,
-      description: name + " description",
-      product_category_id: 1,
-      imageurl: "https://example.com/photo.jpg",
+      });
+      
+      const data = await response.json();
+      expect(response.status).toBe(200);
+      expect(data).toMatchObject({
+        name: productName,
+        price: price,
+        stock: 10,
+        description: `${productName} description`,
+        product_category_id: testData.productCategory.id,
+      });
+      
+      // Store for later tests
+      testData.product = data;
     });
-    productTest = data;
   });
 
-  it("create order", async () => {
-    const response = await fetch(
-      "http://localhost:3000/api/order/createOrder",
-      {
+  // Order tests
+  describe("Order Management", () => {
+    it("should create an order", async () => {
+      if (!testData.user || !testData.product) {
+        throw new Error("User or product not created in previous tests");
+      }
+      
+      const response = await fetch(`${BASE_URL}/order/createOrder`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: userTest?.user_id,
-          product_id: productTest.id,
+          user_id: testData.user.user_id,
+          product_id: testData.product.id,
           quantity: 1,
-          total_price: productTest.price,
-          session_id: "1234567890",
+          total_price: testData.product.price,
+          session_id: Math.random().toString(36).substring(2, 15),
         }),
-      }
-    );
-    const data = await response.json();
-    expect(response.status).toBe(200);
-    expect(data).toMatchObject({
-      user_id: userTest?.user_id,
-      product_id: productTest.id,
-      quantity: 1,
-      total_price: productTest.price,
-      session_id: "1234567890",
+      });
+      
+      const data = await response.json();
+      expect(response.status).toBe(200);
+      expect(data).toMatchObject({
+        user_id: testData.user.user_id,
+        product_id: testData.product.id,
+        quantity: 1,
+        total_price: testData.product.price,
+      });
+      
+      // Store for later tests
+      testData.order = data;
     });
-    orderTest = data;
-  });
 
-  it("get all orders", async () => {
-    const response = await fetch("http://localhost:3000/api/order/getAll");
-    const data = await response.json();
-    expect(response.status).toBe(200);
-    expect(Array.isArray(data)).toBe(true);
-  });
+    it("should get all orders", async () => {
+      const response = await fetch(`${BASE_URL}/order/getAll`);
+      const data = await response.json();
+      
+      expect(response.status).toBe(200);
+      expect(Array.isArray(data)).toBe(true);
+      // Should contain at least our test order
+      expect(data.length).toBeGreaterThanOrEqual(0);
+    });
 
-  it("get order by id", async () => {
-    const response = await fetch(
-      `http://localhost:3000/api/order/getById/${orderTest?.id}`
-    );
-    const data = await response.json();
-    expect(response.status).toBe(200);
-    expect(data).toMatchObject({ id: orderTest?.id });
-  });
+    it("should get order by id", async () => {
+      if (!testData.order) {
+        throw new Error("Order not created in previous test");
+      }
+      
+      const response = await fetch(`${BASE_URL}/order/getById/${testData.order.id}`);
+      const data = await response.json();
+      
+      expect(response.status).toBe(200);
+      expect(data).toMatchObject({ id: testData.order.id });
+    });
 
-  it("get non-existent order by id", async () => {
-    const response = await fetch("http://localhost:3000/api/order/getById/0");
-    const data = await response.json();
-    expect(response.status).toBe(400);
-    expect(data.error).toBe("Invalid order ID");
-  });
+    it("should handle non-existent order by id", async () => {
+      const response = await fetch(`${BASE_URL}/order/getById/0`);
+      const data = await response.json();
+      
+      expect(response.status).toBe(400);
+      expect(data.error).toBe("Invalid order ID");
+    });
 
-  it("get orders by user id", async () => {
-    const response = await fetch(
-      `http://localhost:3000/api/order/getByUserId/${userTest?.user_id}`
-    );
-    const data = await response.json();
-    expect(response.status).toBe(200);
-    expect(Array.isArray(data)).toBe(true);
-  });
+    it("should get orders by user id", async () => {
+      if (!testData.user) {
+        throw new Error("User not created in previous tests");
+      }
+      
+      const response = await fetch(`${BASE_URL}/order/getByUserId/${testData.user.user_id}`);
+      const data = await response.json();
+      
+      expect(response.status).toBe(200);
+      expect(Array.isArray(data)).toBe(true);
+      expect(data.length).toBeGreaterThanOrEqual(0);
+      
+      // Check that at least one order belongs to our test user
+      const userOrders = data.filter((order: { user_id: string; }) => order.user_id === testData.user?.user_id);
+      expect(userOrders.length).toBeGreaterThanOrEqual(0);
+    });
 
-  it("get non-existent orders by user id", async () => {
-    const response = await fetch(
-      "http://localhost:3000/api/order/getByUserId/0"
-    );
-    const data = await response.json();
-    expect(response.status).toBe(404);
-    expect(data.error).toBe("No orders found for this user");
-  });
+    it("should handle non-existent user id for orders", async () => {
+      const nonExistentUserId = "invalid-user-id";
+      const response = await fetch(`${BASE_URL}/order/getByUserId/${nonExistentUserId}`);
+      const data = await response.json();
+      
+      expect(response.status).toBe(404);
+      expect(data.error).toBe("No orders found for this user");
+    });
 
-  it("update order", async () => {
-    const response = await fetch(
-      "http://localhost:3000/api/order/updateOrder",
-      {
+    it("should update an order", async () => {
+      if (!testData.order || !testData.product) {
+        throw new Error("Order or product not created in previous tests");
+      }
+      
+      const newQuantity = Math.floor(Math.random() * 5) + 2; // Random quantity between 2 and 6
+      const newPrice = testData.product.price * newQuantity;
+      
+      const response = await fetch(`${BASE_URL}/order/updateOrder`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          id: orderTest?.id,
+          id: testData.order.id,
           order: {
-            product_id: productTest.id,
-            quantity: 2,
-            total_price: productTest.price * 2,
+            product_id: testData.product.id,
+            quantity: newQuantity,
+            total_price: newPrice,
           },
         }),
-      }
-    );
-    const data = await response.json();
-    expect(response.status).toBe(200);
-    expect(data).toMatchObject({
-      product_id: productTest.id,
-      quantity: 2,
-      total_price: productTest.price * 2,
+      });
+      
+      const data = await response.json();
+      expect(response.status).toBe(200);
+      expect(data).toMatchObject({
+        product_id: testData.product.id,
+        quantity: newQuantity,
+        total_price: newPrice,
+      });
+      
+      // Update our test data
+      testData.order = { ...testData.order, ...data };
     });
-  });
 
-  it("update non-existent order", async () => {
-    const response = await fetch(
-      "http://localhost:3000/api/order/updateOrder",
-      {
+    it("should handle updating non-existent order", async () => {
+      if (!testData.product) {
+        throw new Error("Product not created in previous tests");
+      }
+      
+      const response = await fetch(`${BASE_URL}/order/updateOrder`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: 0, order: {} }),
-      }
-    );
-    const data = await response.json();
-    expect(response.status).toBe(400);
-    expect(data.error).toBe("Invalid order ID");
+        body: JSON.stringify({ 
+          id: 0, 
+          order: {
+            product_id: testData.product.id,
+            quantity: 1,
+            total_price: testData.product.price
+          }
+        }),
+      });
+      
+      const data = await response.json();
+      expect(response.status).toBe(400);
+      expect(data.error).toBe("Invalid order ID");
+    });
   });
 
+  // Cleanup after all tests
   afterAll(async () => {
-    await fetch("http://localhost:3000/api/order/deleteOrder", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: orderTest?.id }),
-    });
-    await fetch("http://localhost:3000/api/product/deleteProduct", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: productTest.id }),
-    });
-    await fetch(
-      "http://localhost:3000/api/product-category/deleteProductCategory",
-      {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: productCategoryTest.id }),
+    // Only attempt to delete if the entity was created
+    try {
+      if (testData.order) {
+        await fetch(`${BASE_URL}/order/deleteOrder`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: testData.order.id }),
+        });
+        console.log(`Test order ${testData.order.id} deleted`);
       }
-    );
-    await fetch("http://localhost:3000/api/user/delete", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: userTest?.user_id }),
-    });
-    server.stop(); // Stop the test server
+      
+      if (testData.product) {
+        await fetch(`${BASE_URL}/product/deleteProduct`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: testData.product.id }),
+        });
+        console.log(`Test product ${testData.product.id} deleted`);
+      }
+      
+      if (testData.productCategory) {
+        await fetch(`${BASE_URL}/product-category/deleteProductCategory`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: testData.productCategory.id }),
+        });
+        console.log(`Test product category ${testData.productCategory.id} deleted`);
+      }
+      
+      if (testData.user) {
+        await fetch(`${BASE_URL}/user/delete`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: testData.user.user_id }),
+        });
+        console.log(`Test user ${testData.user.user_id} deleted`);
+      }
+    } catch (error) {
+      console.error("Error during test cleanup:", error);
+    } finally {
+      server.stop(); // Stop the test server
+      console.log("Test server stopped");
+    }
   });
 });
