@@ -1,8 +1,9 @@
 services:
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    depends_on:
+      - adoptme-postgres
+      - s3.services
+    image: sarikaopas/adoptme-backend:latest
     container_name: adoptme-backend
     ports:
       - "3000:3000"
@@ -12,7 +13,7 @@ services:
       - adoptme-network 
     volumes:
       - .:/usr/src/app
-    command: sh -c "bunx prisma db push && bunx prisma generate && bun run dev"
+    command: sh -c "bunx prisma db push && bun src/index.ts"
   
   adoptme-postgres:
     image: postgres:16
