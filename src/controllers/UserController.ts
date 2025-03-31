@@ -59,8 +59,8 @@ UserController.post(
 			username: t.String(),
 		}),
 		detail: {
-			summary: "Get user by id",
-			description: "Get user by id",
+			summary: "Get by username",
+			description: "Get by username",
 		}
 	}
 )
@@ -77,8 +77,8 @@ UserController.post(
 			username: t.String(),
 		}),
 		detail: {
-			summary: "Get user by id",
-			description: "Get user by id",
+			summary: "Get user by username for test",
+			description: "Get user by username for test",
 		}
 	}
 )
